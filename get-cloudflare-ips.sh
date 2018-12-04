@@ -14,7 +14,7 @@
 # Sources:
 # https://support.cloudflare.com/hc/en-us/articles/200170706-How-do-I-restore-original-visitor-IP-with-Nginx-
 # https://www.cloudflare.com/ips/
-# 
+#
 ###############################################################
 
 
@@ -23,9 +23,10 @@ IPS="ips-v4 ips-v6"
 TMP_CFG="/tmp/cloudflare.conf"
 NGINX_CFG="/etc/nginx/cloudflare.conf"
 USE_X_FORWARDED_FOR="true"
+NGINX_LOCATION="/usr/sbin/nginx"
 
 check_nginx(){
-	2>&1 nginx -V | xargs -n1 | grep with-http_realip_module >/dev/null || abort "Please recompile nginx with realip module support"
+	2>&1 $NGINX_LOCATION -V | xargs -n1 | grep with-http_realip_module >/dev/null || abort "Please recompile nginx with realip module support"
 }
 
 abort() {
@@ -40,7 +41,7 @@ get() {
 
 replace(){
 	cp -f "$1" "$2"
-	nginx -t >/dev/null 2>&1 || abort "Something went wrong, please review nginx -t output"
+	$NGINX_LOCATION -t >/dev/null 2>&1 || abort "Something went wrong, please review nginx -t output"
 	systemctl reload nginx
 }
 
@@ -72,7 +73,7 @@ done
 # real_ip_header CF-Connecting-IP;
 # use just one.
 if [ "$USE_X_FORWARDED_FOR" == "true" ]
-then 
+then
 	echo "real_ip_header X-Forwarded-For;" >> "$TMP_CFG"
 else
 	echo "real_ip_header CF-Connecting-IP;" >> "$TMP_CFG"
